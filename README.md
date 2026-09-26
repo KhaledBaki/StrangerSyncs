@@ -1,2 +1,4 @@
 # StrangerSyncs
-Hack the Hill Facial Recognition Project
+
+## Team Members
+Khaled, Ashvin, Declan
