@@ -20,7 +20,6 @@ def create_person(name, age, phone, face_embedding):
 
     db.collection("people").document(person_id).set(person_data)
 
-<<<<<<< HEAD
     print(f"Person created! ID: {person_id}")
     return person_id
 
@@ -49,4 +48,3 @@ def increase_conversations(person_id):
         raise RuntimeError("Person disappeared after the update.")
 
     return updated.to_dict()["conversations"]
-
