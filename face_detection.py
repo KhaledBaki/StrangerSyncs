@@ -48,7 +48,7 @@ def draw_faces(frame, faces, largest_face):
             frame,
             (x, y),
             (x + width, y + height),
-            (0, 255, 0),
+            (0, 165, 255),
             3,
         )
 

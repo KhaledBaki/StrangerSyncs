@@ -93,7 +93,8 @@ def main():
             if not success:
                 print("ERROR: Could not read from webcam.")
                 break
-
+            
+            frame = cv2.flip(frame, 1)
             faces = detect_faces(detector, frame)
             largest_face = get_largest_face(faces)
             clean_frame = frame.copy()
