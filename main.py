@@ -6,6 +6,7 @@ from face_detection import (
     draw_faces,
     get_largest_face,
 )
+from face_recognition import get_face_embedding
 
 
 def main():
@@ -22,6 +23,7 @@ def main():
         return
 
     print("Webcam opened. Click the video window and press Q to quit.")
+    message = "Show your face, then press S"
 
     try:
         while True:
@@ -33,23 +35,58 @@ def main():
 
             faces = detect_faces(detector, frame)
             largest_face = get_largest_face(faces)
+
+            # Keep an untouched frame for DeepFace. Drawing on it first
+            # would put the green box into the image we analyze.
+            clean_frame = frame.copy()
+
             draw_faces(frame, faces, largest_face)
 
-            status = f"Faces detected: {len(faces)} | Press Q to quit"
             cv2.putText(
                 frame,
-                status,
+                f"Faces: {len(faces)} | S: embedding | Q: quit",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.65,
+                0.6,
                 (255, 255, 255),
                 2,
             )
 
-            cv2.imshow("Hack the Hill - Face Detection", frame)
+            cv2.putText(
+                frame,
+                message,
+                (10, 60),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (255, 255, 255),
+                2,
+            )
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            cv2.imshow("Hack the Hill - Face Embedding Test", frame)
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord("q"):
                 break
+
+            if key == ord("s"):
+                if largest_face is None:
+                    message = "No face detected - try again"
+                    print(message)
+                    continue
+
+                message = "Generating embedding..."
+                print(message)
+
+                try:
+                    embedding = get_face_embedding(
+                        clean_frame, largest_face
+                    )
+                    message = f"Success: {len(embedding)} numbers"
+                    print(message)
+                except Exception as error:
+                    message = "Embedding failed - see terminal"
+                    print(f"ERROR: Could not generate embedding: {error}")
+
     finally:
         camera.release()
         cv2.destroyAllWindows()
