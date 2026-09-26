@@ -16,5 +16,10 @@ def create_person(name, age, phone, face_embedding):
 
     db.collection("people").document(person_id).set(person_data)
 
-    print(f"Person created! ID: {person_id}")
-    return person_id
+    print(f"Person created!")
+    print(f"Person ID: {person_ID}")
+
+    return person_ID
+
+
+
