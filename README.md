@@ -1,4 +1,18 @@
 # StrangerSyncs
+This project is a proposal to the Hack the Hill 3 Hackathon hosted at the University of Ottawa.
+StrangerSyncs was born from a simple idea of connecting strangers together, especially for those suffering memory loss or those whose days are packed with so many meaningful interactions that keeping track of everyone becomes a challenge.
+
+
+## Prototype
+The prototype features a customizable frame designed to fit the user's prescription lenses (or no prescription). An integrated camera captures the user’s field of view, while an embedded side-frame microcontroller processes the image data to check if the person in view exists in the user's database.
+
+If a prior interaction is found, key personal details are displayed via a thin, transparent layer overlaid on the lenses. If the person is unrecognized, the system prompts the user to add a new profile, storing details like name, age, and phone number for future interactions.
 
 ## Team Members
-Khaled, Ashvin, Declan
+
+### Khaled Abdul-Baki
+I'm pursuing a Bachelor of Applied Science in Computer Engineering at the University of Ottawa. I value project based learning, and I'm always eager to learn why things work the way they do. 
+
+### Ashvin
+
+### Declan
