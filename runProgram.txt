@@ -1,0 +1,3 @@
+cd "C:\Users\khale\Desktop\IdeaProjects\StrangerSyncs"
+$env:GOOGLE_APPLICATION_CREDENTIALS = (Resolve-Path ".\secrets\serviceAccountKey.json").Path
+.\.venv\Scripts\python.exe main.py
