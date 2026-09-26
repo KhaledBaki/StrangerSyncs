@@ -10,6 +10,7 @@ from database.database import (
 from face_detection import (
     create_face_detector,
     detect_faces,
+    draw_entry_form,
     draw_faces,
     draw_person_card,
     find_tracked_face,
@@ -21,47 +22,36 @@ from face_recognition import find_best_match, get_face_embedding
 WAITING_FOR_FACE = "WAITING_FOR_FACE"
 WAITING_FOR_USER = "WAITING_FOR_USER"
 ASKING_TO_ADD = "ASKING_TO_ADD"
+ENTERING_DETAILS = "ENTERING_DETAILS"
 WAITING_TO_LEAVE = "WAITING_TO_LEAVE"
 
 STABLE_SECONDS = 0.8
 LEAVE_SECONDS = 2.0
+WINDOW_NAME = "StrangerSyncs"
+FIELDS = ("name", "age", "phone")
 
 
-def ask_for_details():
-    print("\nEnter the person's details in this terminal.")
+def validate_field(field, value):
+    value = value.strip()
 
-    try:
-        while True:
-            name = input("Name: ").strip()
-            if name:
-                break
-            print("Name cannot be empty.")
+    if field == "name":
+        return None if value else "Enter a name."
 
-        while True:
-            age_text = input("Age: ").strip()
-            if age_text.isdigit() and 0 < int(age_text) < 120:
-                age = int(age_text)
-                break
-            print("Enter an age from 1 to 119.")
+    if field == "age":
+        if value.isdigit() and 0 < int(value) < 120:
+            return None
+        return "Enter an age from 1 to 119."
 
-        while True:
-            phone = input("Phone: ").strip()
-            digits = [character for character in phone if character.isdigit()]
-            allowed = all(
-                character in "0123456789+ -()."
-                for character in phone
-            )
+    digits = [character for character in value if character.isdigit()]
+    allowed = all(
+        character in "0123456789+ -()."
+        for character in value
+    )
 
-            if allowed and 7 <= len(digits) <= 15:
-                break
-
-            print("Enter a phone number with 7 to 15 digits.")
-
-        return name, age, phone
-
-    except (EOFError, KeyboardInterrupt):
-        print("\nAdding person cancelled.")
+    if allowed and 7 <= len(digits) <= 15:
         return None
+
+    return "Phone needs 7 to 15 digits."
 
 
 def main():
@@ -84,9 +74,17 @@ def main():
 
     active_person = None
     tracked_face = None
+    form_face = None
+
+    form_values = {"name": "", "age": "", "phone": ""}
+    field_index = 0
+    form_error = ""
 
     message = "Show a face to the camera"
-    print("Press Q in the camera window to quit.")
+    window_created = False
+
+    print("Camera controls: S search, N ignore, Q quit.")
+    print("Press F to toggle full screen.")
 
     try:
         while True:
@@ -150,6 +148,12 @@ def main():
                 else:
                     absent_since = None
 
+            elif state == ENTERING_DETAILS and form_face is not None:
+                current_face = find_tracked_face(faces, form_face)
+
+                if current_face is not None:
+                    form_face = current_face
+
             draw_faces(frame, faces, largest_face)
 
             if active_person is not None and tracked_face is not None:
@@ -165,10 +169,10 @@ def main():
 
             cv2.putText(
                 frame,
-                f"Faces: {len(faces)} | Q: quit",
+                f"Faces: {len(faces)} | Q: quit | F: full screen",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
+                0.55,
                 (255, 255, 255),
                 2,
             )
@@ -183,35 +187,80 @@ def main():
                 2,
             )
 
-            cv2.imshow("StrangerSyncs", frame)
-            key = cv2.waitKey(1) & 0xFF
+            if state == ENTERING_DETAILS:
+                draw_entry_form(
+                    frame, form_values, field_index, form_error
+                )
 
-            if key == ord("q"):
-                break
+            if not window_created:
+                cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+                cv2.imshow(WINDOW_NAME, frame)
+                window_created = True
 
-            if state == ASKING_TO_ADD:
-                if key == ord("n"):
+                try:
+                    cv2.setWindowProperty(
+                        WINDOW_NAME,
+                        cv2.WND_PROP_FULLSCREEN,
+                        cv2.WINDOW_FULLSCREEN,
+                    )
+                    fullscreen = True
+                except cv2.error:
+                    fullscreen = False
+                    print("Full screen unavailable; using a normal window.")
+            else:
+                cv2.imshow(WINDOW_NAME, frame)
+
+            raw_key = cv2.waitKey(1)
+            key = raw_key & 0xFF if raw_key != -1 else -1
+
+            # While typing, Q and F are ordinary letters, not controls.
+            if state == ENTERING_DETAILS:
+                if key == 27:  # Esc
                     pending_embedding = None
+                    form_face = None
                     state = WAITING_TO_LEAVE
                     absent_since = None
-                    message = "Skipped - step out to reset"
-                    print("Nothing saved. Step out to reset.")
+                    message = "Add cancelled - step out"
+                    continue
 
-                elif key == ord("y"):
-                    embedding_to_save = pending_embedding
-                    pending_embedding = None
-                    state = WAITING_TO_LEAVE
-                    absent_since = None
-                    message = "Enter details in PowerShell"
+                if key in (8, 127):  # Backspace
+                    field = FIELDS[field_index]
 
-                    print("Click the PowerShell terminal to type.")
-                    details = ask_for_details()
+                    if form_values[field]:
+                        form_values[field] = form_values[field][:-1]
+                    elif field_index > 0:
+                        field_index -= 1
 
-                    if details is None:
-                        message = "Add cancelled - step out"
+                    form_error = ""
+                    continue
+
+                if key in (10, 13):  # Enter
+                    field = FIELDS[field_index]
+                    error = validate_field(
+                        field, form_values[field]
+                    )
+
+                    if error is not None:
+                        form_error = error
                         continue
 
-                    name, age, phone = details
+                    form_values[field] = form_values[field].strip()
+                    form_error = ""
+
+                    if field_index < len(FIELDS) - 1:
+                        field_index += 1
+                        continue
+
+                    # Last field validated: save exactly once.
+                    name = form_values["name"]
+                    age = int(form_values["age"])
+                    phone = form_values["phone"]
+                    embedding_to_save = pending_embedding
+
+                    pending_embedding = None
+                    state = WAITING_TO_LEAVE
+                    absent_since = None
+                    message = "Saving person..."
 
                     try:
                         person_id = create_person(
@@ -221,9 +270,11 @@ def main():
                         active_person = {
                             "name": name,
                             "age": age,
+                            "phone": phone,
                             "conversations": 1,
                         }
-                        tracked_face = largest_face
+                        tracked_face = form_face
+                        form_face = None
 
                         message = f"Added {name} - step out"
                         print("\nPERSON ADDED")
@@ -235,25 +286,102 @@ def main():
                         print("Step out of view to reset.\n")
 
                     except Exception as error:
+                        form_face = None
                         message = "Save failed - see terminal"
                         print(f"ERROR: Could not add person: {error}")
-                        print("Step out to reset. Check Firestore before retrying.")
+                        print(
+                            "Check Firestore before trying again "
+                            "to avoid duplicates."
+                        )
+
+                    continue
+
+                if 32 <= key <= 126:
+                    field = FIELDS[field_index]
+                    character = chr(key)
+
+                    if field == "age" and not character.isdigit():
+                        form_error = "Age: numbers only."
+                        continue
+
+                    if (
+                        field == "phone"
+                        and character not in "0123456789+ -()."
+                    ):
+                        form_error = "Phone: use digits and + - ( ) spaces."
+                        continue
+
+                    max_length = {
+                        "name": 40,
+                        "age": 3,
+                        "phone": 24,
+                    }[field]
+
+                    if len(form_values[field]) >= max_length:
+                        form_error = "Field is too long."
+                        continue
+
+                    form_values[field] += character
+                    form_error = ""
+
+                continue
+
+            if key in (ord("q"), ord("Q"), 27):
+                break
+
+            if key in (ord("f"), ord("F")):
+                try:
+                    fullscreen = not fullscreen
+                    cv2.setWindowProperty(
+                        WINDOW_NAME,
+                        cv2.WND_PROP_FULLSCREEN,
+                        (
+                            cv2.WINDOW_FULLSCREEN
+                            if fullscreen
+                            else cv2.WINDOW_NORMAL
+                        ),
+                    )
+                except cv2.error as error:
+                    print(f"Could not change window mode: {error}")
+                continue
+
+            if state == ASKING_TO_ADD:
+                if key in (ord("n"), ord("N")):
+                    pending_embedding = None
+                    state = WAITING_TO_LEAVE
+                    absent_since = None
+                    message = "Skipped - step out to reset"
+                    print("Nothing saved. Step out to reset.")
+
+                elif key in (ord("y"), ord("Y")):
+                    state = ENTERING_DETAILS
+                    form_face = largest_face
+                    form_values = {
+                        "name": "",
+                        "age": "",
+                        "phone": "",
+                    }
+                    field_index = 0
+                    form_error = ""
+                    message = "Enter details on screen"
+                    print("Entering details in the camera window.")
 
                 continue
 
             if state != WAITING_FOR_USER:
                 continue
 
-            if key == ord("n"):
+            if key in (ord("n"), ord("N")):
                 state = WAITING_TO_LEAVE
                 absent_since = None
                 message = "Ignored - step out to reset"
                 print("Person ignored.")
                 continue
 
-            if key != ord("s"):
+            if key not in (ord("s"), ord("S")):
                 continue
 
+            # Lock before recognition or any Firebase operation.
             state = WAITING_TO_LEAVE
             absent_since = None
             message = "Searching - see terminal"
@@ -272,7 +400,7 @@ def main():
                     pending_embedding = embedding
                     state = ASKING_TO_ADD
                     message = "Not found: Y add | N skip"
-                    print("Person not found. Press Y or N in the camera window.")
+                    print("Person not found. Press Y or N in the window.")
                     continue
 
                 new_count = increase_conversations(person["id"])
@@ -280,6 +408,7 @@ def main():
                 active_person = {
                     "name": person["name"],
                     "age": person["age"],
+                    "phone": person["phone"],
                     "conversations": new_count,
                 }
                 tracked_face = largest_face
