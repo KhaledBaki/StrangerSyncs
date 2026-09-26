@@ -1,26 +1,20 @@
-# methods for adding/deleting data person
-
-# generates a unique ID for each person
 import uuid
 
-from firebase_config import db
+from .firebase_config import db
 
-# Create a person and store it in the database of collection "people"
-def create_person(name, age, phone):
-    person_ID = str(uuid.uuid4()); 
+
+def create_person(name, age, phone, face_embedding):
+    person_id = str(uuid.uuid4())
 
     person_data = {
-        "name": name, 
-        "age": age, 
-        "phone":  phone,
+        "name": name,
+        "age": age,
+        "phone": phone,
+        "conversations": 1,
+        "face_embedding": face_embedding,
     }
 
-    db.collection("people").document(person_ID).set(person_data)
+    db.collection("people").document(person_id).set(person_data)
 
-    print(f"Person created!")
-    print(f"Person ID: {person_ID}")
-
-    return person_ID
-
-
-
+    print(f"Person created! ID: {person_id}")
+    return person_id

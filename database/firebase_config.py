@@ -1,12 +1,5 @@
-# Connects the program to the database
+# Gives other files access to our one Firebase connection.
 
-import firebase_admin
-from firebase_admin import credentials, firestore
+from .firebase_database import get_database
 
-cred = credentials.Certificate("serviceAccountKey.json")
-
-firebase_admin.initialize_app(cred)
-
-db = firestore.client()
-
-print("Connected to Firebase!")
+db = get_database()
