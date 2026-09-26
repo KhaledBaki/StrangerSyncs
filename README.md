@@ -13,6 +13,6 @@ If a prior interaction is found, key personal details are displayed via a thin, 
 ### Khaled Abdul-Baki
 I'm pursuing a Bachelor of Applied Science in Computer Engineering at the University of Ottawa. I value project based learning, and I'm always eager to learn why things work the way they do. 
 
-### Ashvin
+### Ashvin Sivakolunthu
 
-### Declan
+### Declan Green
