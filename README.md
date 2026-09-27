@@ -11,9 +11,7 @@ If a prior interaction is found, key personal details are displayed via a thin, 
 ## Team Members
 
 ### Khaled Abdul-Baki
-I'm pursuing a Bachelor of Applied Science in Computer Engineering at the University of Ottawa. I value project based learning, and I'm always eager to learn why things work the way they do. 
+I'm pursuing a Bachelor of Applied Science in Computer Engineering at the University of Ottawa. I value project based learning, and I'm always eager to learn why things work the way they do. My interests are Machine Learning, and Competitive programming sush
 
 ### Ashvin Sivakolunthu
 I'm a 2nd Year Computer Engineering Student at the University of Ottawa. I'm interested in Embedded Systems, Firmware, AI/ML, and Quantum Computing. I love attending to events and workshops to meet new people, and learn new things in technology.
-
-### Declan Green
