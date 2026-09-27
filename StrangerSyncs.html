@@ -243,7 +243,7 @@
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
     <nav class="nav" id="mainNav" aria-label="Main navigation">
       <a href="#prototype">Prototype</a>
-      <a href="#mission">Mission</a>
+      <a href="#mission">Our Mission</a>
       <a href="#team">Team</a>
     </nav>
   </header>
@@ -251,12 +251,10 @@
   <main>
     <section id="home" class="hero">
       <div class="hero-content">
-        <p class="eyebrow">HACKATHON PROJECT</p>
+        <h1 class="eyebrow">HACKATHON PROJECT</h1>
+        <br>
         <h1>Remember who<br><span>you've met.</span></h1>
-        <p class="hero-text">
-          StrangerSyncs is a wearable concept designed to help users
-          recognize and remember the people they meet.
-        </p>
+        <br><br>
         <a class="button" href="#prototype">Explore the prototype <span>↓</span></a>
       </div>
 
@@ -270,10 +268,6 @@
       <div class="section-heading">
         <p class="eyebrow">01 / PROTOTYPE</p>
         <h2>The idea in your field of view.</h2>
-        <p>
-          Our prototype combines a camera, ESP32, physical controls and a
-          transparent display into a wearable system.
-        </p>
       </div>
 
       <div class="prototype-layout">
@@ -313,23 +307,11 @@
           </article>
         </div>
       </div>
-
-      <div class="flow">
-        <div class="flow-step"><strong>01</strong><span>Camera</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><strong>02</strong><span>Recognition</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><strong>03</strong><span>Database</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><strong>04</strong><span>Profile</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-step"><strong>05</strong><span>Display</span></div>
-      </div>
     </section>
 
     <section id="mission" class="section-soft">
       <div class="section-heading">
-        <p class="eyebrow">02 / MISSION</p>
+        <p class="eyebrow">02 / OUR MISSION</p>
         <h2>Why StrangerSyncs?</h2>
         <p>
           Forgetting names and personal details can make everyday social
@@ -343,6 +325,7 @@
           <span class="stat-placeholder">24,000+</span>
           <h3>People living with dementia in the Ottawa region</h3>
           <p>
+            Source:
             <a href="https://www.ottawapublichealth.ca/Modules/News/blogcomments.aspx?BlogId=2474ab55-ee0a-454f-9155-c863f8546252" target="_blank" rel="noopener">Ottawa Public Health</a>,
             Champlain health region data.
           </p>
@@ -368,29 +351,7 @@
         </div>
       </div>
 
-      <div class="chart-card">
-        <div>
-          <p class="eyebrow">RESEARCH</p>
-          <h3>Evidence behind the problem</h3>
-          <p class="chart-description">
-            Research data will be placed here once the source and time period
-            are selected.
-          </p>
-        </div>
-        <div class="chart-placeholder" role="img" aria-label="Placeholder for research graph">
-          <div class="chart-y-label">People affected</div>
-          <div class="bars">
-            <span style="height: 35%"></span>
-            <span style="height: 48%"></span>
-            <span style="height: 61%"></span>
-            <span style="height: 76%"></span>
-            <span style="height: 88%"></span>
-          </div>
-          <div class="chart-x-labels">
-            <span>2015</span><span>2020</span><span>2025</span><span>2030</span><span>2035</span>
-          </div>
-        </div>
-      </div>
+      
 
       <div class="solution">
         <p class="eyebrow">OUR APPROACH</p>
@@ -406,27 +367,26 @@
       <div class="section-heading">
         <p class="eyebrow">03 / TEAM</p>
         <h2>The people behind it.</h2>
-        <p>Three teammates. One prototype. A lot of iteration.</p>
       </div>
 
       <div class="team-grid">
         <article class="team-card">
           <div class="profile-placeholder">01</div>
-          <h3>Teammate One</h3>
-          <span>Hardware / Embedded</span>
-          <p>Add the teammate's name, role and a short description of their contribution to the prototype.</p>
+          <h3>Khaled Abdul-Baki</h3>
+          <span>Computer Vision & Machine Learning</span>
+          <p>I utilized OpenCV and Deepface to implement the needs of the prototype. OpenCV detects the face object, and Deepface uses machine learning to recognize it.</p>
         </article>
         <article class="team-card">
           <div class="profile-placeholder">02</div>
-          <h3>Teammate Two</h3>
-          <span>Software / AI</span>
-          <p>Add the teammate's name, role and a short description of their contribution to recognition, voice or the database.</p>
+          <h3>Ashvin Sivakolunthu</h3>
+          <span>Backend Development & Prototype Modelling</span>
+          <p>I connected the main model with Google's Firebase server and modelled how our prototype would look.</p>
         </article>
         <article class="team-card">
           <div class="profile-placeholder">03</div>
-          <h3>Teammate Three</h3>
-          <span>UI / Product</span>
-          <p>Add the teammate's name, role and a short description of their contribution to the interface and presentation.</p>
+          <h3>Declan Green</h3>
+          <span>Web Development</span>
+          <p>Brainstormed and designed the frontend website of the project for the hackathon.</p>
         </article>
       </div>
     </section>
