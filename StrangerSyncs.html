@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="StrangerSyncs — a wearable prototype designed to help people remember the people they meet.">
+<title>StrangerSyncs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{
+    --navy:#0E1F35;
+    --navy-2:#16314F;
+    --blue:#2E6FA3;
+    --blue-light:#8FC3E8;
+    --orange:#FB8500;
+    --orange-2:#FFB454;
+    --paper:#F7F3EC;
+    --ink:#EAF0F6;
+    --ink-dim:#9FB2C6;
+    --line: rgba(255,255,255,0.10);
+    box-sizing:border-box;
+  }
+  *,*::before,*::after{box-sizing:inherit;}
+  html{scroll-behavior:smooth; scroll-padding-top:78px;}
+  body{
+    margin:0;
+    background:var(--navy);
+    color:var(--ink);
+    font-family:'Inter', system-ui, -apple-system, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Space Grotesk', 'Inter', sans-serif;
+    margin:0;
+    color:#fff;
+    letter-spacing:-0.01em;
+  }
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  section{padding: 96px 6vw;}
+  @media (max-width:720px){ section{padding: 64px 6vw;} }
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 6vw;
+    padding-top: calc(16px + env(safe-area-inset-top,0px));
+    background: rgba(14,31,53,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:1.15rem; color:#fff;
+  }
+  .brand span{color:var(--orange);}
+  .nav{display:flex; gap:10px;}
+  .nav a{
+    padding:8px 18px;
+    border-radius:999px;
+    font-weight:500;
+    font-size:0.92rem;
+    border:1px solid var(--blue);
+    color:var(--blue-light);
+    transition: background .18s ease, color .18s ease, border-color .18s ease;
+  }
+  .nav a:hover, .nav a.active{
+    background: var(--orange);
+    border-color: var(--orange);
+    color:#1a1200;
+  }
+  .nav-toggle{display:none;}
+  @media (max-width:640px){
+    .nav{
+      position:fixed; top:64px; right:6vw; left:6vw;
+      flex-direction:column;
+      background:var(--navy-2);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      display:none;
+      gap:6px;
+    }
+    .nav.open{display:flex;}
+    .nav a{text-align:center;}
+    .nav-toggle{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:38px; height:38px; border-radius:10px;
+      border:1px solid var(--line); background:transparent; color:#fff;
+      font-size:1.1rem; cursor:pointer;
+    }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    display:grid; grid-template-columns: 1.1fr 0.9fr; gap:48px;
+    align-items:center;
+    min-height: 78vh;
+    padding-top: 64px;
+  }
+  @media (max-width:900px){ .hero{grid-template-columns:1fr; min-height:auto;} }
+  .eyebrow{
+    font-size:0.8rem; font-weight:600; color:var(--orange-2);
+    letter-spacing:0.02em; margin:0 0 14px;
+  }
+  .hero h1{ font-size: clamp(2.4rem, 5vw, 3.6rem); line-height:1.05; }
+  .hero h1 span{ color: var(--orange-2); }
+  .hero-text{
+    color:var(--ink-dim); max-width:46ch; font-size:1.05rem; margin: 18px 0 30px;
+  }
+  .button{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--orange); color:#1a1200; font-weight:600;
+    padding:13px 24px; border-radius:12px; font-size:0.98rem;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .button:hover{ background:var(--orange-2); transform: translateY(-2px); }
+  .button span{ transition: transform .15s ease; }
+  .button:hover span{ transform: translateY(3px); }
+
+  .hero-visual{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .window{
+    position:relative;
+    width:100%; max-width:420px; aspect-ratio: 4/3;
+    border-radius:20px;
+    background: radial-gradient(120% 140% at 30% 20%, var(--orange-2) 0%, var(--orange) 45%, #7a3d00 100%);
+    border:1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 30px 60px -20px rgba(251,133,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; touch-action:none; cursor:grab;
+  }
+  .window:active{ cursor:grabbing; }
+  .window canvas{ position:absolute; inset:0; }
+  .glasses{ display:flex; align-items:center; gap:0; }
+  .lens{
+    width:96px; height:96px; border-radius:50%;
+    border:6px solid rgba(14,31,53,0.85);
+    background: rgba(255,255,255,0.12);
+  }
+  .large .lens{ width:120px; height:120px; }
+  .bridge{ width:26px; height:6px; background:rgba(14,31,53,0.85); }
+  .caption{ color:var(--ink-dim); font-size:0.85rem; }
+
+  /* ---------- Section heading ---------- */
+  .section-heading{ max-width:640px; margin-bottom:52px; }
+  .section-heading h2{ font-size: clamp(1.8rem, 3.4vw, 2.4rem); margin: 8px 0 14px; }
+  .section-heading p{ color:var(--ink-dim); font-size:1.02rem; }
+  .section-soft{ background: var(--navy-2); }
+
+  /* ---------- Prototype ---------- */
+  .prototype-layout{ display:grid; grid-template-columns: 1fr 1fr; gap:56px; align-items:start; }
+  @media (max-width:900px){ .prototype-layout{grid-template-columns:1fr;} }
+  .stage-note{ font-size:0.82rem; color:var(--ink-dim); }
+  .component-list{ display:flex; flex-direction:column; gap:22px; }
+  .component{ display:flex; gap:16px; border-top:1px solid var(--line); padding-top:18px; }
+  .component:first-child{ border-top:none; padding-top:0; }
+  .component-number{ font-family:'Space Grotesk',sans-serif; color:var(--orange); font-weight:600; }
+  .component h3{ font-size:1.05rem; margin-bottom:4px; }
+  .component p{ color:var(--ink-dim); font-size:0.95rem; margin:0; }
+
+  .flow{
+    margin-top:64px; display:flex; align-items:center; flex-wrap:wrap; gap:10px 6px;
+    justify-content:center;
+  }
+  .flow-step{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:14px 18px; border-radius:14px; background:var(--navy-2);
+    border:1px solid var(--line); min-width:96px;
+  }
+  .flow-step strong{ color:var(--orange-2); font-family:'Space Grotesk',sans-serif; font-size:0.85rem; }
+  .flow-step span{ font-size:0.85rem; color:var(--ink); }
+  .flow-arrow{ color: var(--blue-light); font-size:1.1rem; }
+
+  /* ---------- Mission ---------- */
+  .mission-grid{ display:grid; grid-template-columns: 0.8fr 1.2fr; gap:40px; margin-bottom:56px; }
+  @media (max-width:820px){ .mission-grid{grid-template-columns:1fr;} }
+  .stat-card{
+    background: linear-gradient(160deg, var(--orange) 0%, #8a4300 100%);
+    border-radius:18px; padding:28px; color:#1a1200;
+  }
+  .stat-placeholder{ font-family:'Space Grotesk',sans-serif; font-size:2.6rem; font-weight:700; display:block; }
+  .stat-card h3{ color:#1a1200; margin-top:6px; font-size:1.05rem; }
+  .stat-card p{ color:#3a2400; font-size:0.9rem; }
+  .stat-card p a{ text-decoration:underline; text-underline-offset:2px; font-weight:600; }
+  .research-copy h3{ font-size:1.15rem; margin-bottom:10px; }
+  .research-copy p{ color:var(--ink-dim); margin:0 0 12px; }
+  .research-copy strong{ color:#fff; }
+
+  .chart-card{
+    background:var(--navy-2); border:1px solid var(--line); border-radius:20px;
+    padding:32px; display:grid; grid-template-columns:0.9fr 1.1fr; gap:32px; align-items:center;
+    margin-bottom:56px;
+  }
+  @media (max-width:820px){ .chart-card{grid-template-columns:1fr;} }
+  .chart-description{ color:var(--ink-dim); font-size:0.95rem; }
+  .chart-placeholder{ position:relative; }
+  .chart-y-label{ font-size:0.75rem; color:var(--ink-dim); margin-bottom:8px; }
+  .bars{ display:flex; align-items:flex-end; gap:10px; height:140px; }
+  .bars span{
+    flex:1; border-radius:6px 6px 0 0;
+    background:linear-gradient(180deg, var(--orange-2), var(--orange));
+  }
+  .chart-x-labels{ display:flex; justify-content:space-between; margin-top:8px; font-size:0.75rem; color:var(--ink-dim); }
+
+  .solution{ max-width:640px; }
+  .solution h3{ font-size:1.3rem; margin:8px 0 10px; }
+  .solution p{ color:var(--ink-dim); }
+
+  /* ---------- Team ---------- */
+  .team-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media (max-width:820px){ .team-grid{grid-template-columns:1fr;} }
+  .team-card{
+    background:var(--navy-2); border:1px solid var(--line); border-radius:18px;
+    padding:26px; text-align:left;
+  }
+  .profile-placeholder{
+    width:52px; height:52px; border-radius:12px;
+    background: linear-gradient(135deg, var(--blue), var(--orange));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff;
+    margin-bottom:16px;
+  }
+  .team-card h3{ font-size:1.05rem; margin-bottom:2px; }
+  .team-card span{ font-size:0.82rem; color:var(--orange-2); }
+  .team-card p{ color:var(--ink-dim); font-size:0.9rem; margin-top:10px; }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:32px 6vw calc(32px + env(safe-area-inset-bottom,0px));
+    display:flex; justify-content:space-between; color:var(--ink-dim); font-size:0.85rem;
+  }
+  @media (max-width:480px){ footer{flex-direction:column; gap:6px;} }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="StrangerSyncs home">Stranger<span>Syncs</span></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    <nav class="nav" id="mainNav" aria-label="Main navigation">
+      <a href="#prototype">Prototype</a>
+      <a href="#mission">Mission</a>
+      <a href="#team">Team</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="hero-content">
+        <p class="eyebrow">HACKATHON PROJECT</p>
+        <h1>Remember who<br><span>you've met.</span></h1>
+        <p class="hero-text">
+          StrangerSyncs is a wearable concept designed to help users
+          recognize and remember the people they meet.
+        </p>
+        <a class="button" href="#prototype">Explore the prototype <span>↓</span></a>
+      </div>
+
+      <div class="hero-visual">
+        <div class="window" id="glHero"></div>
+        <p class="caption">Drag to rotate the prototype</p>
+      </div>
+    </section>
+
+    <section id="prototype">
+      <div class="section-heading">
+        <p class="eyebrow">01 / PROTOTYPE</p>
+        <h2>The idea in your field of view.</h2>
+        <p>
+          Our prototype combines a camera, ESP32, physical controls and a
+          transparent display into a wearable system.
+        </p>
+      </div>
+
+      <div class="prototype-layout">
+        <div class="prototype-stage">
+          <div class="window large" id="glProto" style="max-width:100%;"></div>
+          <span class="stage-note">Drag to rotate · Scroll to zoom</span>
+        </div>
+
+        <div class="component-list">
+          <article class="component">
+            <span class="component-number">01</span>
+            <div>
+              <h3>Camera</h3>
+              <p>Captures the surrounding environment for the recognition system.</p>
+            </div>
+          </article>
+          <article class="component">
+            <span class="component-number">02</span>
+            <div>
+              <h3>ESP32</h3>
+              <p>Acts as the main microcontroller for the wearable prototype.</p>
+            </div>
+          </article>
+          <article class="component">
+            <span class="component-number">03</span>
+            <div>
+              <h3>Controls</h3>
+              <p>Physical buttons let the user control the prototype manually.</p>
+            </div>
+          </article>
+          <article class="component">
+            <span class="component-number">04</span>
+            <div>
+              <h3>Clear display</h3>
+              <p>Presents useful information while keeping the user's view open.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step"><strong>01</strong><span>Camera</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>02</strong><span>Recognition</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>03</strong><span>Database</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>04</strong><span>Profile</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>05</strong><span>Display</span></div>
+      </div>
+    </section>
+
+    <section id="mission" class="section-soft">
+      <div class="section-heading">
+        <p class="eyebrow">02 / MISSION</p>
+        <h2>Why StrangerSyncs?</h2>
+        <p>
+          Forgetting names and personal details can make everyday social
+          interactions harder. StrangerSyncs explores a technological way
+          to support memory during those moments.
+        </p>
+      </div>
+
+      <div class="mission-grid">
+        <article class="stat-card">
+          <span class="stat-placeholder">24,000+</span>
+          <h3>People living with dementia in the Ottawa region</h3>
+          <p>
+            <a href="https://www.ottawapublichealth.ca/Modules/News/blogcomments.aspx?BlogId=2474ab55-ee0a-454f-9155-c863f8546252" target="_blank" rel="noopener">Ottawa Public Health</a>,
+            Champlain health region data.
+          </p>
+        </article>
+
+        <div class="research-copy">
+          <h3>The problem</h3>
+          <p>
+            Ottawa Public Health puts the number of people living with
+            dementia in the Champlain region at over 24,000, and it's
+            rising as our population ages. Long before any diagnosis, though,
+            the same kind of memory friction shows up in everyday life — a
+            name that won't surface, a face that feels familiar but
+            unplaceable, a connection that quietly slips away.
+          </p>
+          <p>
+            Our project focuses on one simple question:
+            <strong>what if technology could provide a small second memory?</strong>
+            StrangerSyncs isn't a medical device — it's a wearable aid for
+            the moment recognition fails, built around a real and growing
+            local need.
+          </p>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div>
+          <p class="eyebrow">RESEARCH</p>
+          <h3>Evidence behind the problem</h3>
+          <p class="chart-description">
+            Research data will be placed here once the source and time period
+            are selected.
+          </p>
+        </div>
+        <div class="chart-placeholder" role="img" aria-label="Placeholder for research graph">
+          <div class="chart-y-label">People affected</div>
+          <div class="bars">
+            <span style="height: 35%"></span>
+            <span style="height: 48%"></span>
+            <span style="height: 61%"></span>
+            <span style="height: 76%"></span>
+            <span style="height: 88%"></span>
+          </div>
+          <div class="chart-x-labels">
+            <span>2015</span><span>2020</span><span>2025</span><span>2030</span><span>2035</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="solution">
+        <p class="eyebrow">OUR APPROACH</p>
+        <h3>From recognition to memory.</h3>
+        <p>
+          A face is recognized, a matching profile is retrieved, and relevant
+          information can be shown through the wearable interface.
+        </p>
+      </div>
+    </section>
+
+    <section id="team">
+      <div class="section-heading">
+        <p class="eyebrow">03 / TEAM</p>
+        <h2>The people behind it.</h2>
+        <p>Three teammates. One prototype. A lot of iteration.</p>
+      </div>
+
+      <div class="team-grid">
+        <article class="team-card">
+          <div class="profile-placeholder">01</div>
+          <h3>Teammate One</h3>
+          <span>Hardware / Embedded</span>
+          <p>Add the teammate's name, role and a short description of their contribution to the prototype.</p>
+        </article>
+        <article class="team-card">
+          <div class="profile-placeholder">02</div>
+          <h3>Teammate Two</h3>
+          <span>Software / AI</span>
+          <p>Add the teammate's name, role and a short description of their contribution to recognition, voice or the database.</p>
+        </article>
+        <article class="team-card">
+          <div class="profile-placeholder">03</div>
+          <h3>Teammate Three</h3>
+          <span>UI / Product</span>
+          <p>Add the teammate's name, role and a short description of their contribution to the interface and presentation.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>StrangerSyncs</p>
+    <p>Hackathon Prototype · 2026</p>
+  </footer>
+
+  <script>
+    (function(){
+      var toggle = document.getElementById('navToggle');
+      var nav = document.getElementById('mainNav');
+      if(toggle){
+        toggle.addEventListener('click', function(){
+          var open = nav.classList.toggle('open');
+          toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        nav.querySelectorAll('a').forEach(function(a){
+          a.addEventListener('click', function(){
+            nav.classList.remove('open');
+            toggle.setAttribute('aria-expanded','false');
+          });
+        });
+      }
+
+      var links = Array.prototype.slice.call(document.querySelectorAll('.nav a'));
+      var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+
+      function onScroll(){
+        var pos = window.scrollY + 120;
+        var current = sections[0];
+        sections.forEach(function(sec){ if(sec.offsetTop <= pos) current = sec; });
+        links.forEach(function(a){
+          a.classList.toggle('active', a.getAttribute('href') === '#' + current.id);
+        });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+
+    function buildGlasses(container){
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(38, 1, .1, 100);
+      var camDist = 7.2, camYaw = .5, camPitch = .28;
+      var renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+      container.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0xffffff, .55));
+      var key = new THREE.DirectionalLight(0xffffff, .9); key.position.set(4,6,5); scene.add(key);
+      var rimL = new THREE.DirectionalLight(0x8FC3E8, .5); rimL.position.set(-5,2,-4); scene.add(rimL);
+
+      var rig = new THREE.Group(); scene.add(rig);
+      var frameMat = new THREE.MeshStandardMaterial({ color:0x20242b, roughness:.35, metalness:.3 });
+      var lensMat  = new THREE.MeshPhysicalMaterial({ color:0x8FC3E8, transparent:true, opacity:.32, roughness:.1, metalness:0, transmission:.4 });
+      var camMat   = new THREE.MeshStandardMaterial({ color:0x111111, roughness:.25, metalness:.6 });
+      var btnMat   = new THREE.MeshStandardMaterial({ color:0xFB8500, roughness:.4, metalness:.2, emissive:0x552a00, emissiveIntensity:.4 });
+      var pcbMat   = new THREE.MeshStandardMaterial({ color:0x141414, roughness:.5, metalness:.25 });
+      var chipMat  = new THREE.MeshStandardMaterial({ color:0x1b1b1b, roughness:.5 });
+      var screenMat= new THREE.MeshStandardMaterial({ color:0x081018, emissive:0x2E6FA3, emissiveIntensity:.9, roughness:.4 });
+      var bezelMat = new THREE.MeshStandardMaterial({ color:0x0b0b0b, roughness:.4, metalness:.3 });
+
+      function lens(x){
+        var m = new THREE.Mesh(new THREE.TorusGeometry(1.3, .16, 18, 40), frameMat);
+        m.position.set(x,0,0); rig.add(m);
+        var glass = new THREE.Mesh(new THREE.CircleGeometry(1.14, 40), lensMat);
+        glass.position.set(x,0,.03); rig.add(glass);
+      }
+      lens(-1.75); lens(1.75);
+
+      var bridge = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.9,14), frameMat);
+      bridge.rotation.z = Math.PI/2; bridge.position.set(0,.15,0); rig.add(bridge);
+
+      function temple(side){
+        var g = new THREE.Group();
+        var hinge = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.16,14), frameMat);
+        hinge.rotation.x = Math.PI/2; g.add(hinge);
+        var arm = new THREE.Mesh(new THREE.BoxGeometry(2.8,.09,.09), frameMat);
+        arm.position.set(side*1.4,0,0); g.add(arm);
+        var tip = new THREE.Mesh(new THREE.BoxGeometry(.6,.16,.09), frameMat);
+        tip.position.set(side*3.05,0,0); tip.rotation.z = -side*.35; g.add(tip);
+        g.position.set(side*3.05,0,0); g.rotation.y = side * Math.PI/2;
+        rig.add(g); return g;
+      }
+      var leftArm = temple(-1), rightArm = temple(1);
+
+      var mount = new THREE.Mesh(new THREE.BoxGeometry(.24,.2,.16), frameMat);
+      mount.position.set(-2.7, 1.0, .25); rig.add(mount);
+      var cam = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.07,20), camMat);
+      cam.rotation.x = Math.PI/2; cam.position.set(-2.7, 1.0, .35); rig.add(cam);
+      var glint = new THREE.Mesh(new THREE.CircleGeometry(.05,16), new THREE.MeshStandardMaterial({color:0x3a6ea5, emissive:0x3a6ea5, emissiveIntensity:.6}));
+      glint.position.set(-2.7, 1.0, .39); rig.add(glint);
+
+      for(var i=0;i<3;i++){
+        var b = new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.04,16), btnMat);
+        b.position.set(-.9 + i*.4, .07, 0);
+        leftArm.children[1].add(b);
+      }
+
+      var pcb = new THREE.Mesh(new THREE.BoxGeometry(.95,.09,.09), pcbMat);
+      pcb.position.set(.55,-.09,0); rightArm.children[1].add(pcb);
+      var chip = new THREE.Mesh(new THREE.BoxGeometry(.3,.04,.06), chipMat);
+      chip.position.set(.55,.065,0); rightArm.children[1].add(chip);
+
+      var screenGroup = new THREE.Group();
+      screenGroup.position.set(1.75, 1.1, .2); screenGroup.rotation.x = -.55;
+      var bracket = new THREE.Mesh(new THREE.BoxGeometry(.1,.35,.08), frameMat);
+      bracket.position.set(0,-.3,-.05); screenGroup.add(bracket);
+      var bezel = new THREE.Mesh(new THREE.BoxGeometry(.92,.6,.05), bezelMat); screenGroup.add(bezel);
+      var screen = new THREE.Mesh(new THREE.PlaneGeometry(.8,.48), screenMat);
+      screen.position.z = .03; screenGroup.add(screen);
+      rig.add(screenGroup);
+      rig.rotation.x = .05;
+
+      var dragging=false, lastX=0, lastY=0, autoSpin=true;
+      function setCam(){
+        camera.position.set(
+          camDist*Math.sin(camYaw)*Math.cos(camPitch),
+          camDist*Math.sin(camPitch)+.2,
+          camDist*Math.cos(camYaw)*Math.cos(camPitch)
+        );
+        camera.lookAt(0,.1,0);
+      }
+      function resize(){
+        var w = container.clientWidth, h = container.clientHeight;
+        camera.aspect = w/h; camera.updateProjectionMatrix();
+        renderer.setSize(w,h);
+      }
+      resize(); setCam();
+      window.addEventListener('resize', resize);
+
+      container.addEventListener('pointerdown', function(e){ dragging=true; autoSpin=false; lastX=e.clientX; lastY=e.clientY; });
+      window.addEventListener('pointerup', function(){ dragging=false; });
+      window.addEventListener('pointermove', function(e){
+        if(!dragging) return;
+        camYaw += (e.clientX-lastX)*.006;
+        camPitch = Math.max(-.5, Math.min(.9, camPitch + (e.clientY-lastY)*-.005));
+        lastX=e.clientX; lastY=e.clientY; setCam();
+      });
+      container.addEventListener('wheel', function(e){
+        e.preventDefault();
+        camDist = Math.max(3.5, Math.min(14, camDist + e.deltaY*.01));
+        setCam();
+      }, { passive:false });
+
+      (function animate(){
+        requestAnimationFrame(animate);
+        if(autoSpin){ camYaw += .0025; setCam(); }
+        renderer.render(scene, camera);
+      })();
+    }
+
+    ['glHero','glProto'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) buildGlasses(el);
+    });
+  </script>
+</body>
+</html>
